@@ -1,12 +1,13 @@
 {
-	"LOADING": "Загрузка &hellip;",
+	"LOADING": "Загрузка …",
 
+	"DAYBEFOREYESTERDAY": "Позавчера",
+	"YESTERDAY": "Вчера",
 	"TODAY": "Сегодня",
 	"TOMORROW": "Завтра",
 	"DAYAFTERTOMORROW": "Послезавтра",
 	"RUNNING": "Заканчивается через",
 	"EMPTY": "Нет предстоящих событий",
-
 	"WEEK": "Неделя {weekNumber}",
 
 	"N": "С",
@@ -26,7 +27,10 @@
 	"NW": "СЗ",
 	"NNW": "ССЗ",
 
+	"FEELS": "По ощущению {DEGREE}",
+
 	"UPDATE_NOTIFICATION": "Есть обновление для MagicMirror².",
 	"UPDATE_NOTIFICATION_MODULE": "Есть обновление для {MODULE_NAME} модуля.",
-	"UPDATE_INFO": "Данная инсталляция позади {BRANCH_NAME} ветки на {COMMIT_COUNT} коммитов."
+	"UPDATE_INFO_SINGLE": "Данная инсталляция позади {BRANCH_NAME} commit ветки на {COMMIT_COUNT} коммитов.",
+	"UPDATE_INFO_MULTIPLE": "Данная инсталляция позади {BRANCH_NAME} commits ветки на {COMMIT_COUNT} коммитов."
 }

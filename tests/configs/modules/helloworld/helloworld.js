@@ -1,22 +1,9 @@
-/* Magic Mirror Test config sample module hello world
+/* MagicMirror² Test config sample module hello world
  *
  * By Rodrigo Ramírez Norambuena https://rodrigoramirez.com
  * MIT Licensed.
  */
-
-var config = {
-	port: 8080,
-	ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
-
-	language: "en",
-	timeFormat: 24,
-	units: "metric",
-	electronOptions: {
-		webPreferences: {
-			nodeIntegration: true,
-		},
-	},
-
+let config = {
 	modules: [
 		{
 			module: "helloworld",
@@ -29,4 +16,6 @@ var config = {
 };
 
 /*************** DO NOT EDIT THE LINE BELOW ***************/
-if (typeof module !== "undefined") {module.exports = config;}
+if (typeof module !== "undefined") {
+	module.exports = config;
+}

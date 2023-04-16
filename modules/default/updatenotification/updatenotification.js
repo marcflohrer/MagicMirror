@@ -1,87 +1,89 @@
+/* MagicMirror²
+ * Module: UpdateNotification
+ *
+ * By Michael Teeuw https://michaelteeuw.nl
+ * MIT Licensed.
+ */
 Module.register("updatenotification", {
-
 	defaults: {
 		updateInterval: 10 * 60 * 1000, // every 10 minutes
+		refreshInterval: 24 * 60 * 60 * 1000, // one day
+		ignoreModules: []
 	},
 
-	status: false,
+	suspended: false,
+	moduleList: {},
 
-	start: function () {
-		Log.log("Start updatenotification");
-
+	start() {
+		Log.info(`Starting module: ${this.name}`);
+		this.addFilters();
+		setInterval(() => {
+			this.moduleList = {};
+			this.updateDom(2);
+		}, this.config.refreshInterval);
 	},
 
-	notificationReceived: function (notification, payload, sender) {
+	suspend() {
+		this.suspended = true;
+	},
+
+	resume() {
+		this.suspended = false;
+		this.updateDom(2);
+	},
+
+	notificationReceived(notification) {
 		if (notification === "DOM_OBJECTS_CREATED") {
 			this.sendSocketNotification("CONFIG", this.config);
-			this.sendSocketNotification("MODULES", Module.definitions);
-			this.hide(0, { lockString: self.identifier });
+			this.sendSocketNotification("MODULES", Object.keys(Module.definitions));
 		}
 	},
 
-	socketNotificationReceived: function (notification, payload) {
+	socketNotificationReceived(notification, payload) {
 		if (notification === "STATUS") {
-			this.status = payload;
-			this.updateUI();
+			this.updateUI(payload);
 		}
 	},
 
-	updateUI: function () {
-		var self = this;
-		if (this.status && this.status.behind > 0) {
-			self.updateDom(0);
-			self.show(1000, { lockString: self.identifier });
-		}
+	getStyles() {
+		return [`${this.name}.css`];
 	},
 
-	diffLink: function(text) {
-		var localRef = this.status.hash;
-		var remoteRef = this.status.tracking.replace(/.*\//, "");
-		return "<a href=\"https://github.com/MichMich/MagicMirror/compare/"+localRef+"..."+remoteRef+"\" "+
-			"class=\"xsmall dimmed\" "+
-			"style=\"text-decoration: none;\" "+
-			"target=\"_blank\" >" +
-			text +
-			"</a>";
+	getTemplate() {
+		return `${this.name}.njk`;
 	},
 
-	// Override dom generator.
-	getDom: function () {
-		var wrapper = document.createElement("div");
+	getTemplateData() {
+		return { moduleList: this.moduleList, suspended: this.suspended };
+	},
 
-		if (this.status && this.status.behind > 0) {
-			var message = document.createElement("div");
-			message.className = "small bright";
-
-			var icon = document.createElement("i");
-			icon.className = "fa fa-exclamation-circle";
-			icon.innerHTML = "&nbsp;";
-			message.appendChild(icon);
-
-			var subtextHtml = this.translate("UPDATE_INFO", {
-				COMMIT_COUNT: this.status.behind + " " + ((this.status.behind == 1) ? "commit" : "commits"),
-				BRANCH_NAME: this.status.current
-			});
-
-			var text = document.createElement("span");
-			if (this.status.module == "default") {
-				text.innerHTML = this.translate("UPDATE_NOTIFICATION");
-				subtextHtml = this.diffLink(subtextHtml);
-			} else {
-				text.innerHTML = this.translate("UPDATE_NOTIFICATION_MODULE", {
-					MODULE_NAME: this.status.module
-				});
+	updateUI(payload) {
+		if (payload && payload.behind > 0) {
+			// if we haven't seen info for this module
+			if (this.moduleList[payload.module] === undefined) {
+				// save it
+				this.moduleList[payload.module] = payload;
+				this.updateDom(2);
 			}
-			message.appendChild(text);
-
-			wrapper.appendChild(message);
-
-			var subtext = document.createElement("div");
-			subtext.innerHTML = subtextHtml;
-			subtext.className = "xsmall dimmed";
-			wrapper.appendChild(subtext);
+		} else if (payload && payload.behind === 0) {
+			// if the module WAS in the list, but shouldn't be
+			if (this.moduleList[payload.module] !== undefined) {
+				// remove it
+				delete this.moduleList[payload.module];
+				this.updateDom(2);
+			}
 		}
+	},
 
-		return wrapper;
+	addFilters() {
+		this.nunjucksEnvironment().addFilter("diffLink", (text, status) => {
+			if (status.module !== "MagicMirror") {
+				return text;
+			}
+
+			const localRef = status.hash;
+			const remoteRef = status.tracking.replace(/.*\//, "");
+			return `<a href="https://github.com/MichMich/MagicMirror/compare/${localRef}...${remoteRef}" class="xsmall dimmed difflink" target="_blank">${text}</a>`;
+		});
 	}
 });
